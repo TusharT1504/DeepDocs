@@ -1,23 +1,23 @@
 {
-  "name": "c_project",
+  "name": "deepdocs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI Document Chat Assistant with MERN stack, LangChain, Gemini, and Pinecone",
+  "main": "backend/index.js",
   "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start",
+    "dev:full": "concurrently \"npm run dev\" \"npm run frontend\"",
+    "build": "cd frontend && npm run build",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["ai", "chat", "document", "rag", "langchain", "gemini", "pinecone"],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@langchain/community": "^0.3.45",
-    "@langchain/core": "^0.3.57",
-    "@langchain/google-genai": "^0.2.10",
-    "@langchain/pinecone": "^0.2.0",
-    "@pinecone-database/pinecone": "^5.1.2",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "js": "^0.1.0",
-    "langchain": "^0.3.27"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
-}
+} 

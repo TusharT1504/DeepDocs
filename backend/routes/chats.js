@@ -4,6 +4,18 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const enhancedRagService = require('../services/enhancedRagService');
 
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Chat API is working',
+    timestamp: new Date().toISOString(),
+    env: {
+      hasGoogleKey: !!process.env.GOOGLE_API_KEY,
+      hasPineconeKey: !!process.env.PINECONE_API_KEY
+    }
+  });
+});
+
 // Get all chats
 router.get('/', async (req, res) => {
   try {
@@ -97,14 +109,19 @@ router.post('/:id/messages', async (req, res) => {
     const { content } = req.body;
     const chatId = req.params.id;
     
+    console.log('Received message request:', { chatId, content });
+    
     if (!content) {
       return res.status(400).json({ error: 'Message content is required' });
     }
     
     const chat = await Chat.findById(chatId);
     if (!chat) {
+      console.log('Chat not found:', chatId);
       return res.status(404).json({ error: 'Chat not found' });
     }
+    
+    console.log('Chat found:', chat.title);
     
     // Save user message
     const userMessage = new Message({
@@ -113,20 +130,25 @@ router.post('/:id/messages', async (req, res) => {
       content
     });
     await userMessage.save();
+    console.log('User message saved');
     
     // Get document namespaces for this chat
     const documentNamespaces = chat.documents.map(doc => doc.vectorNamespace);
+    console.log('Document namespaces:', documentNamespaces);
     
     // Get previous messages for context
     const previousMessages = await Message.find({ chatId }).sort({ timestamp: 1 });
+    console.log('Previous messages count:', previousMessages.length);
     
     // Process with RAG
+    console.log('Processing with RAG...');
     const ragResponse = await enhancedRagService.processQuery(
       chatId,
       content,
       documentNamespaces,
       previousMessages
     );
+    console.log('RAG response received:', ragResponse.answer.substring(0, 100) + '...');
     
     // Save assistant message
     const assistantMessage = new Message({
@@ -136,6 +158,7 @@ router.post('/:id/messages', async (req, res) => {
       sources: ragResponse.sources
     });
     await assistantMessage.save();
+    console.log('Assistant message saved');
     
     // Update chat timestamp
     await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
@@ -148,7 +171,7 @@ router.post('/:id/messages', async (req, res) => {
     
   } catch (error) {
     console.error('Error sending message:', error);
-    res.status(500).json({ error: 'Failed to send message' });
+    res.status(500).json({ error: 'Failed to send message', details: error.message });
   }
 });
 

@@ -66,18 +66,5 @@ npm start
 
 The backend will typically run on [http://localhost:5000](http://localhost:5000) and the frontend on [http://localhost:5173](http://localhost:5173).
 
-## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
-5. Create a new Pull Request
 
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For questions or support, please open an issue or contact [your.email@example.com](mailto:your.email@example.com)

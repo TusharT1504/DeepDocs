@@ -6,7 +6,7 @@ import toast from "react-hot-toast"
 import ChatSidebar from "./ChatSidebar"
 import ChatArea from "./ChatArea"
 import DocumentManager from "./DocumentManager"
-import { Menu, X, FileText, Home } from "lucide-react"
+import { Menu, X, FileText, Home, Plus, MessageSquare } from "lucide-react"
 
 const ChatInterface = React.memo(() => {
   const { chatId } = useParams()
@@ -42,6 +42,33 @@ const ChatInterface = React.memo(() => {
     navigate("/")
   }, [navigate])
 
+  const handleCreateNewChat = useCallback(async () => {
+    try {
+      const response = await fetch("/api/chats", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title: "New Chat" }),
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const newChat = await response.json()
+      
+      // Update chats list
+      setChats((prev) => [newChat, ...prev])
+      
+      // Navigate to the new chat
+      navigate(`/chat/${newChat._id}`)
+    } catch (error) {
+      console.error("Error creating chat:", error)
+      toast.error("Failed to create new chat")
+    }
+  }, [navigate])
+
   // Fetch chats on component mount
   useEffect(() => {
     fetchChats()
@@ -51,20 +78,8 @@ const ChatInterface = React.memo(() => {
   useEffect(() => {
     if (chatId) {
       loadChat(chatId)
-    } else if (chats.length > 0) {
-      navigate(`/chat/${chats[0]._id}`)
-    } else {
-      // If no chatId and no chats, create a new one
-      createNewChat()
     }
-  }, [chatId, chats, navigate])
-
-  // Auto-create new chat when navigating to /chat without chatId
-  useEffect(() => {
-    if (location.pathname === '/chat' && !chatId && chats.length === 0) {
-      createNewChat()
-    }
-  }, [location.pathname, chatId, chats])
+  }, [chatId])
 
   const fetchChats = async () => {
     try {
@@ -88,7 +103,7 @@ const ChatInterface = React.memo(() => {
       const response = await fetch(`/api/chats/${id}`)
 
       if (response.status === 404) {
-        await createNewChat()
+        navigate("/chat")
         return
       }
 
@@ -102,50 +117,12 @@ const ChatInterface = React.memo(() => {
       setDocuments(data.chat.documents || [])
     } catch (error) {
       console.error("Error loading chat:", error)
-      setError(`Failed to load chat: ${error.message}. Creating new chat...`)
-
-      try {
-        await createNewChat()
-      } catch (createError) {
-        console.error("Failed to create new chat:", createError)
-        setError("Failed to load chat and create new one. Please check backend connection.")
-      }
+      setError(`Failed to load chat: ${error.message}`)
+      navigate("/chat")
     } finally {
       setLoading(false)
     }
   }
-
-  const createNewChat = useCallback(async () => {
-    try {
-      const response = await fetch("/api/chats", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title: "New Chat" }),
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const newChat = await response.json()
-      
-      // Set the current chat immediately
-      setCurrentChat(newChat)
-      setMessages([])
-      setDocuments([])
-      
-      // Update chats list
-      setChats((prev) => [newChat, ...prev])
-      
-      // Navigate to the new chat
-      navigate(`/chat/${newChat._id}`)
-    } catch (error) {
-      console.error("Error creating chat:", error)
-      toast.error("Failed to create new chat")
-    }
-  }, [navigate])
 
   const deleteChat = useCallback(
     async (id) => {
@@ -318,6 +295,83 @@ const ChatInterface = React.memo(() => {
     )
   }
 
+  // Show create new chat screen when no chat is selected
+  if (!currentChat) {
+    return (
+      <div className="flex h-screen bg-white overflow-hidden font-['Poppins',sans-serif]">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <div
+          className={`
+          fixed lg:static inset-y-0 left-0 z-50 w-80 sm:w-72 bg-white border-r border-gray-200 
+          transform transition-transform duration-300 ease-in-out lg:translate-x-0
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+        >
+          <ChatSidebar
+            chats={chats}
+            currentChat={currentChat}
+            onCreateChat={handleCreateNewChat}
+            onDeleteChat={deleteChat}
+            onUpdateTitle={updateChatTitle}
+            onSelectChat={handleSelectChat}
+          />
+        </div>
+
+        {/* Main content - Create New Chat Screen */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center space-x-3 min-w-0">
+              <button
+                onClick={handleSidebarToggle}
+                className="lg:hidden p-2 rounded-lg hover:bg-[#f9f9f9] transition-colors"
+                aria-label="Toggle sidebar"
+              >
+                <Menu className="w-5 h-5 text-gray-600" />
+              </button>
+              <button
+                onClick={handleGoHome}
+                className="p-2 rounded-lg hover:bg-[#f9f9f9] transition-colors"
+                aria-label="Go to home"
+              >
+                <Home className="w-5 h-5 text-gray-600" />
+              </button>
+              <h1 className="text-lg font-semibold text-[#111111]">DeepDocs</h1>
+            </div>
+          </header>
+
+          {/* Create New Chat Content */}
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="w-24 h-24 bg-[#f9f9f9] rounded-full flex items-center justify-center mx-auto mb-6">
+                <MessageSquare className="w-12 h-12 text-gray-400" />
+              </div>
+              <h2 className="text-2xl font-semibold text-[#111111] mb-4">Welcome to DeepDocs</h2>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Start a new conversation to chat with your documents using AI. Upload your PDFs and ask questions to get intelligent answers.
+              </p>
+              <button
+                onClick={handleCreateNewChat}
+                className="bg-black text-white px-8 py-4 rounded-xl hover:bg-[#1f1f1f] transition-all duration-300 font-semibold text-lg inline-flex items-center space-x-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <Plus className="w-6 h-6" />
+                <span>Create New Chat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-white overflow-hidden font-['Poppins',sans-serif]">
       {/* Mobile sidebar overlay */}
@@ -339,7 +393,7 @@ const ChatInterface = React.memo(() => {
         <ChatSidebar
           chats={chats}
           currentChat={currentChat}
-          onCreateChat={createNewChat}
+          onCreateChat={handleCreateNewChat}
           onDeleteChat={deleteChat}
           onUpdateTitle={updateChatTitle}
           onSelectChat={handleSelectChat}

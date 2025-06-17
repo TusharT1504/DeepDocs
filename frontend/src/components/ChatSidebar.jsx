@@ -176,7 +176,7 @@ const ChatSidebar = React.memo(({ chats, currentChat, onCreateChat, onDeleteChat
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 flex-shrink-0">
-        <div className="text-xs text-gray-600 text-center font-medium">DeepDocs Assistant</div>
+        <div className="text-xs text-gray-600 text-center font-medium">DeepDocs</div>
       </div>
     </div>
   )

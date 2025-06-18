@@ -21,6 +21,8 @@ const ChatInterface = React.memo(() => {
   const [docManagerOpen, setDocManagerOpen] = useState(false)
   const [error, setError] = useState(null)
 
+   const API_BASE = import.meta.env.DEV ? '/api' : 'https://localhost:5000/api';
+
   // Memoized handlers for performance
   const handleSidebarToggle = useCallback(() => {
     setSidebarOpen((prev) => !prev)
@@ -44,7 +46,10 @@ const ChatInterface = React.memo(() => {
 
   const handleCreateNewChat = useCallback(async () => {
     try {
-      const response = await fetch("/api/chats", {
+
+     
+
+      const response = await fetch(`${API_BASE}/chats`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +89,7 @@ const ChatInterface = React.memo(() => {
   const fetchChats = async () => {
     try {
       setError(null)
-      const response = await fetch("/api/chats")
+      const response = await fetch(`${API_BASE}/chats`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -100,7 +105,7 @@ const ChatInterface = React.memo(() => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/chats/${id}`)
+      const response = await fetch(`${API_BASE}/chats/${id}`)
 
       if (response.status === 404) {
         navigate("/chat")
@@ -127,7 +132,7 @@ const ChatInterface = React.memo(() => {
   const deleteChat = useCallback(
     async (id) => {
       try {
-        await fetch(`/api/chats/${id}`, {
+        await fetch(`${API_BASE}/chats/${id}`, {
           method: "DELETE",
         })
         setChats((prev) => prev.filter((chat) => chat._id !== id))
@@ -146,7 +151,7 @@ const ChatInterface = React.memo(() => {
   const updateChatTitle = useCallback(
     async (id, title) => {
       try {
-        const response = await fetch(`/api/chats/${id}`, {
+        const response = await fetch(`${API_BASE}/chats/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -187,8 +192,8 @@ const ChatInterface = React.memo(() => {
       setLoading(true)
 
       try {
-        console.log("Making API request to:", `/api/chats/${currentChat._id}/messages`)
-        const response = await fetch(`/api/chats/${currentChat._id}/messages`, {
+        console.log("Making API request to:", `${API_BASE}/chats/${currentChat._id}/messages`)
+        const response = await fetch(`${API_BASE}/chats/${currentChat._id}/messages`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -231,7 +236,7 @@ const ChatInterface = React.memo(() => {
       formData.append("document", file)
 
       try {
-        const response = await fetch(`/api/documents/upload/${currentChat._id}`, {
+        const response = await fetch(`${API_BASE}/documents/upload/${currentChat._id}`, {
           method: "POST",
           body: formData,
         })
@@ -252,7 +257,7 @@ const ChatInterface = React.memo(() => {
       if (!currentChat) return
 
       try {
-        await fetch(`/api/documents/remove/${currentChat._id}/${documentId}`, {
+        await fetch(`${API_BASE}/documents/remove/${currentChat._id}/${documentId}`, {
           method: "DELETE",
         })
         setDocuments((prev) => prev.filter((doc) => doc._id !== documentId))

@@ -21,7 +21,7 @@ const ChatInterface = React.memo(() => {
   const [docManagerOpen, setDocManagerOpen] = useState(false)
   const [error, setError] = useState(null)
 
-   const API_BASE = import.meta.env.DEV ? '/api' : 'https://localhost:5000/api';
+   const API_BASE = import.meta.env.DEV ? '/api' : 'https://deepdocs.onrender.com/api';
 
   // Memoized handlers for performance
   const handleSidebarToggle = useCallback(() => {
